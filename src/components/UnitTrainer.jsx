@@ -47,6 +47,14 @@ export default function UnitTrainer({ userId }) {
     window.speechSynthesis.speak(utter)
   }
 
+  function speakSyllable(text) {
+    window.speechSynthesis.cancel()
+    const utter = new SpeechSynthesisUtterance(text)
+    utter.lang = 'ko-KR'
+    utter.rate = 0.8
+    window.speechSynthesis.speak(utter)
+  }
+
   async function startListening() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       setResult({ score: 0, feedback: 'Speech recognition not supported in this browser.', heard: '' })
@@ -185,6 +193,23 @@ export default function UnitTrainer({ userId }) {
             {result.feedback && (
               <div className="text-amber-400 mt-1">{result.feedback}</div>
             )}
+          </div>
+        )}
+
+        {unit.practice_syllables && unit.practice_syllables.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-neutral-800">
+            <div className="text-xs text-neutral-500 mb-2">Practice syllables</div>
+            <div className="flex gap-2 flex-wrap">
+              {unit.practice_syllables.map(s => (
+                <button
+                  key={s}
+                  onClick={() => speakSyllable(s)}
+                  className="px-3 py-1.5 bg-neutral-800 text-neutral-100 hangul text-lg rounded hover:bg-neutral-700 transition-colors"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
