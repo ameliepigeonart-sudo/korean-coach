@@ -12,17 +12,28 @@ import Dialogues from './components/Dialogues.jsx'
 
 export default function App() {
   const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [screen, setScreen] = useState('today')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
+      setLoading(false)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
+      setLoading(false)
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+        <div className="text-neutral-600 text-sm">Loading...</div>
+      </div>
+    )
+  }
 
   if (!session) return <Auth />
 
