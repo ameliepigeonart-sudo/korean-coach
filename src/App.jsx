@@ -9,6 +9,8 @@ import ImportAudio from './components/ImportAudio.jsx'
 import Review from './components/Review.jsx'
 import HangulMap from './components/HangulMap.jsx'
 import Dialogues from './components/Dialogues.jsx'
+import Chat from './components/Chat.jsx'
+import LanguageRules from './components/LanguageRules.jsx'
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -20,10 +22,12 @@ export default function App() {
       setSession(session)
       setLoading(false)
     })
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setLoading(false)
     })
+
     return () => subscription.unsubscribe()
   }, [])
 
@@ -45,6 +49,8 @@ export default function App() {
         {screen === 'trainer' && <UnitTrainer userId={session.user.id} />}
         {screen === 'hangul' && <HangulMap />}
         {screen === 'dialogues' && <Dialogues />}
+        {screen === 'rules' && <LanguageRules />}
+        {screen === 'chat' && <Chat />}
         {screen === 'capture' && <CapturePhoto userId={session.user.id} />}
         {screen === 'import' && <ImportAudio userId={session.user.id} />}
         {screen === 'review' && <Review userId={session.user.id} />}
