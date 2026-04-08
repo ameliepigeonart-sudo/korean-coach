@@ -6,8 +6,6 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
-    storageKey: 'korean-coach-auth',
-    storage: window.localStorage,
     autoRefreshToken: true,
     detectSessionInUrl: false,
   },
