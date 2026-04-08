@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase.js'
 const SCREENS = [
   { id: 'today', label: 'Today' },
   { id: 'trainer', label: 'Trainer' },
+  { id: 'hangul', label: 'Hangul' },
+  { id: 'dialogues', label: 'Dialogues' },
   { id: 'capture', label: 'Capture' },
   { id: 'import', label: 'Import' },
   { id: 'review', label: 'Review' },
