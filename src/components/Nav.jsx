@@ -5,6 +5,8 @@ const SCREENS = [
   { id: 'trainer', label: 'Trainer' },
   { id: 'hangul', label: 'Hangul' },
   { id: 'dialogues', label: 'Dialogues' },
+  { id: 'rules', label: 'Rules' },
+  { id: 'chat', label: 'Chat' },
   { id: 'capture', label: 'Capture' },
   { id: 'import', label: 'Import' },
   { id: 'review', label: 'Review' },
