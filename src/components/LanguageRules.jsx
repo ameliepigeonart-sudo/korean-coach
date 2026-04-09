@@ -1,29 +1,11 @@
 import { useState } from 'react'
-
-function speak(text) {
-  window.speechSynthesis.cancel()
-  const trySpeak = () => {
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = 'ko-KR'
-    const voices = window.speechSynthesis.getVoices()
-    const koVoice = voices.find(v => v.lang === 'ko-KR' && v.name.includes('Google'))
-      || voices.find(v => v.lang === 'ko-KR')
-    if (koVoice) u.voice = koVoice
-    u.rate = 0.85
-    window.speechSynthesis.speak(u)
-  }
-  if (window.speechSynthesis.getVoices().length === 0) {
-    window.speechSynthesis.onvoiceschanged = trySpeak
-  } else {
-    trySpeak()
-  }
-}
+import { speakKorean } from '../lib/tts.js'
 
 function ListenBtn({ text, label }) {
   const [active, setActive] = useState(false)
   return (
     <button
-      onClick={() => { setActive(true); speak(text); setTimeout(() => setActive(false), 600) }}
+      onClick={async () => { setActive(true); await speakKorean(text); setTimeout(() => setActive(false), 600) }}
       className={`hangul inline-flex items-center gap-1 px-2 py-0.5 rounded border border-neutral-700 text-neutral-200 hover:border-neutral-500 transition-all text-sm ${active ? 'opacity-60 scale-95' : ''}`}
     >
       {label || text} <span className="text-neutral-500 text-xs">▶</span>
@@ -32,16 +14,16 @@ function ListenBtn({ text, label }) {
 }
 
 const CONSONANT_POSITIONS = [
-  { c: 'ㄱ', initial: 'g or k', final: 'k (unreleased, stop)' },
+  { c: 'ㄱ', initial: 'g ou k', final: 'k (non relâché, stop)' },
   { c: 'ㄴ', initial: 'n', final: 'n (nasal)' },
-  { c: 'ㄷ', initial: 'd or t', final: 't (unreleased, stop)' },
-  { c: 'ㄹ', initial: 'r (flap)', final: 'l (lateral)' },
+  { c: 'ㄷ', initial: 'd ou t', final: 't (non relâché, stop)' },
+  { c: 'ㄹ', initial: 'r (battement)', final: 'l (latéral)' },
   { c: 'ㅁ', initial: 'm', final: 'm (nasal)' },
-  { c: 'ㅂ', initial: 'b or p', final: 'p (unreleased, stop)' },
-  { c: 'ㅅ', initial: 's', final: 't (unreleased)' },
-  { c: 'ㅇ', initial: 'silent', final: 'ng (nasal)' },
-  { c: 'ㅈ', initial: 'j', final: 't (unreleased)' },
-  { c: 'ㅎ', initial: 'h', final: 'weakens/silent' },
+  { c: 'ㅂ', initial: 'b ou p', final: 'p (non relâché, stop)' },
+  { c: 'ㅅ', initial: 's', final: 't (non relâché)' },
+  { c: 'ㅇ', initial: 'silencieux', final: 'ng (nasal)' },
+  { c: 'ㅈ', initial: 'j', final: 't (non relâché)' },
+  { c: 'ㅎ', initial: 'h', final: 's\'affaiblit/silencieux' },
 ]
 
 const TENSE = [
@@ -60,12 +42,12 @@ const ASPIRATED = [
 ]
 
 const PARTICLES = [
-  { particle: '은/는', fn: 'Topic marker', ex: '저는 (as for me...)' },
-  { particle: '이/가', fn: 'Subject marker', ex: '제가 (I, as subject)' },
-  { particle: '을/를', fn: 'Object marker', ex: '밥을 (rice, as object)' },
-  { particle: '에', fn: 'Location/time', ex: '학교에 (at school)' },
-  { particle: '에서', fn: 'Action location', ex: '학교에서 (at school, doing something)' },
-  { particle: '와/과', fn: 'And (formal)', ex: '사과와 배 (apple and pear)' },
+  { particle: '은/는', fn: 'Marqueur de thème', ex: '저는 (quant à moi...)' },
+  { particle: '이/가', fn: 'Marqueur de sujet', ex: '제가 (moi, en tant que sujet)' },
+  { particle: '을/를', fn: 'Marqueur d\'objet', ex: '밥을 (le riz, en tant qu\'objet)' },
+  { particle: '에', fn: 'Lieu/temps', ex: '학교에 (à l\'école)' },
+  { particle: '에서', fn: 'Lieu d\'action', ex: '학교에서 (à l\'école, en train de faire quelque chose)' },
+  { particle: '와/과', fn: 'Et (formel)', ex: '사과와 배 (pomme et poire)' },
 ]
 
 function Section({ title, children }) {
@@ -80,18 +62,17 @@ function Section({ title, children }) {
 function WritingRules() {
   return (
     <div className="space-y-5">
-      {/* ㅇ section */}
-      <Section title="How ㅇ works">
+      <Section title="Comment fonctionne ㅇ">
         <div className="space-y-3 text-sm text-neutral-300">
           <div>
-            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">Start of a syllable — silent placeholder</p>
-            <p>ㅇ is silent. The vowel sounds alone.</p>
+            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">Début de syllabe — silencieux</p>
+            <p>ㅇ est silencieux. La voyelle sonne seule.</p>
             <div className="flex gap-3 mt-2 flex-wrap">
               {['아','어','이','오','우'].map(s => <ListenBtn key={s} text={s} />)}
             </div>
           </div>
           <div>
-            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">End of a syllable (batchim) — "ng" sound</p>
+            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">Fin de syllabe (batchim) — son "ng"</p>
             <div className="flex gap-3 mt-2 flex-wrap">
               {[['방','bang'],['강','gang'],['영','yeong']].map(([k,r]) => (
                 <div key={k} className="flex items-center gap-1">
@@ -102,21 +83,20 @@ function WritingRules() {
             </div>
           </div>
           <div className="bg-neutral-800 rounded p-3 text-xs font-mono space-y-1">
-            <div><span className="hangul text-base">ㅇ + ㅏ = 아</span> <span className="text-neutral-500 ml-2">← silent ㅇ</span></div>
+            <div><span className="hangul text-base">ㅇ + ㅏ = 아</span> <span className="text-neutral-500 ml-2">← ㅇ silencieux</span></div>
             <div><span className="hangul text-base">방 = ㅂ + ㅏ + ㅇ</span> <span className="text-neutral-500 ml-2">← ㅇ = ng</span></div>
           </div>
         </div>
       </Section>
 
-      {/* Consonant positions */}
-      <Section title="Consonants that change sound by position">
+      <Section title="Consonnes qui changent de son selon la position">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-neutral-500 border-b border-neutral-800 text-left">
-                <th className="py-2 pr-4">Consonant</th>
-                <th className="py-2 pr-4">Start of syllable</th>
-                <th className="py-2">End of syllable (batchim)</th>
+                <th className="py-2 pr-4">Consonne</th>
+                <th className="py-2 pr-4">Début de syllabe</th>
+                <th className="py-2">Fin de syllabe (batchim)</th>
               </tr>
             </thead>
             <tbody>
@@ -132,9 +112,8 @@ function WritingRules() {
         </div>
       </Section>
 
-      {/* Liaison */}
-      <Section title="Liaison rules (연음)">
-        <p className="text-sm text-neutral-300">When a syllable ends in a consonant and the next starts with ㅇ (silent), the consonant moves to the next syllable.</p>
+      <Section title="Règles de liaison (연음)">
+        <p className="text-sm text-neutral-300">Quand une syllabe se termine par une consonne et la suivante commence par ㅇ (silencieux), la consonne se déplace.</p>
         <div className="space-y-2 text-sm">
           {[
             ['음악', '음 + 악', '으막', 'eu-mak'],
@@ -145,23 +124,22 @@ function WritingRules() {
               <ListenBtn text={orig} label={orig} />
               <span className="hangul text-neutral-400 text-xs">{split}</span>
               <span className="text-neutral-600">→</span>
-              <span className="hangul text-neutral-300 text-sm">sounds like {sounds}</span>
+              <span className="hangul text-neutral-300 text-sm">sonne comme {sounds}</span>
               <span className="text-neutral-500 text-xs">({roman})</span>
             </div>
           ))}
         </div>
       </Section>
 
-      {/* Double consonants */}
-      <Section title="Double consonants (tense sounds)">
-        <p className="text-sm text-neutral-300">ㄲ ㄸ ㅃ ㅆ ㅉ — no aspiration, glottalized, tighter than plain.</p>
+      <Section title="Consonnes doubles (sons tendus)">
+        <p className="text-sm text-neutral-300">ㄲ ㄸ ㅃ ㅆ ㅉ — sans aspiration, glottalisé, plus tendu que les consonnes simples.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-neutral-500 border-b border-neutral-800 text-left">
-                <th className="py-2 pr-4">Plain</th>
-                <th className="py-2 pr-4">Tense</th>
-                <th className="py-2">Compare</th>
+                <th className="py-2 pr-4">Simple</th>
+                <th className="py-2 pr-4">Tendu</th>
+                <th className="py-2">Comparaison</th>
               </tr>
             </thead>
             <tbody>
@@ -173,7 +151,7 @@ function WritingRules() {
                   <td className="py-2 pr-4">
                     <ListenBtn text={row.tenseEx} label={row.tense + ' · ' + row.tenseEx} />
                   </td>
-                  <td className="py-2 text-neutral-500 text-xs">relaxed → tense</td>
+                  <td className="py-2 text-neutral-500 text-xs">relâché → tendu</td>
                 </tr>
               ))}
             </tbody>
@@ -181,15 +159,14 @@ function WritingRules() {
         </div>
       </Section>
 
-      {/* Aspirated */}
-      <Section title="Aspirated consonants">
-        <p className="text-sm text-neutral-300">ㅋ ㅌ ㅍ ㅊ ㅎ — strong burst of air. Hand test: feel airflow.</p>
+      <Section title="Consonnes aspirées">
+        <p className="text-sm text-neutral-300">ㅋ ㅌ ㅍ ㅊ ㅎ — forte expulsion d'air. Test de la main : sentir le souffle.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-neutral-500 border-b border-neutral-800 text-left">
-                <th className="py-2 pr-4">Plain (little air)</th>
-                <th className="py-2 pr-4">Aspirated (strong air)</th>
+                <th className="py-2 pr-4">Simple (peu d'air)</th>
+                <th className="py-2 pr-4">Aspiré (fort souffle)</th>
               </tr>
             </thead>
             <tbody>
@@ -214,16 +191,15 @@ function WritingRules() {
 function SentenceStructure() {
   return (
     <div className="space-y-5">
-      {/* Word order */}
-      <Section title="Word order">
-        <p className="text-sm text-neutral-300">Korean = Subject + Object + Verb</p>
-        <p className="text-sm text-neutral-400">English/French = Subject + Verb + Object</p>
+      <Section title="Ordre des mots">
+        <p className="text-sm text-neutral-300">Coréen = Sujet + Objet + Verbe</p>
+        <p className="text-sm text-neutral-400">Français/Anglais = Sujet + Verbe + Objet</p>
         <div className="mt-3 space-y-3">
           {[
-            { ko: '나는 밥을 먹어요.', en: 'I eat rice.', parts: ['나는 (I)', '밥을 (rice)', '먹어요 (eat)'] },
-            { ko: '그는 음악을 들어요.', en: 'He listens to music.', parts: ['그는 (he)', '음악을 (music)', '들어요 (listen)'] },
-            { ko: '저는 한국어를 배워요.', en: 'I learn Korean.', parts: ['저는 (I)', '한국어를 (Korean)', '배워요 (learn)'] },
-          ].map(({ ko, en, parts }) => (
+            { ko: '나는 밥을 먹어요.', fr: 'Je mange du riz.', parts: ['나는 (je)', '밥을 (riz)', '먹어요 (mange)'] },
+            { ko: '그는 음악을 들어요.', fr: 'Il écoute de la musique.', parts: ['그는 (il)', '음악을 (musique)', '들어요 (écoute)'] },
+            { ko: '저는 한국어를 배워요.', fr: 'J\'apprends le coréen.', parts: ['저는 (je)', '한국어를 (coréen)', '배워요 (apprends)'] },
+          ].map(({ ko, fr, parts }) => (
             <div key={ko} className="bg-neutral-800 rounded p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <span className="hangul text-neutral-100">{ko}</span>
@@ -239,33 +215,31 @@ function SentenceStructure() {
                   ].join(' ')}>{p}</span>
                 ))}
               </div>
-              <p className="text-neutral-400 text-xs">{en}</p>
+              <p className="text-neutral-400 text-xs">{fr}</p>
             </div>
           ))}
         </div>
       </Section>
 
-      {/* No articles/gender */}
-      <Section title="No articles, no gender">
+      <Section title="Pas d'articles, pas de genre">
         <div className="text-sm text-neutral-300 space-y-2">
-          <p>No "le/la/un/une" — nouns have no gender.</p>
+          <p>Pas de "le/la/un/une" — les noms n'ont pas de genre.</p>
           <div className="bg-neutral-800 rounded p-3 text-sm space-y-1">
-            <div><span className="hangul text-neutral-100">친구</span> <span className="text-neutral-400">= friend (male or female, same word)</span></div>
-            <div className="text-neutral-500 text-xs">French: "un ami / une amie" → Korean: just 친구</div>
+            <div><span className="hangul text-neutral-100">친구</span> <span className="text-neutral-400">= ami(e) (masculin ou féminin, même mot)</span></div>
+            <div className="text-neutral-500 text-xs">Français : "un ami / une amie" → Coréen : juste 친구</div>
           </div>
         </div>
       </Section>
 
-      {/* Particles */}
-      <Section title="Particles (markers)">
-        <p className="text-sm text-neutral-300">Korean uses particles after nouns to show their role in the sentence.</p>
+      <Section title="Particules (marqueurs)">
+        <p className="text-sm text-neutral-300">Le coréen utilise des particules après les noms pour indiquer leur rôle dans la phrase.</p>
         <div className="overflow-x-auto mt-2">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-neutral-500 border-b border-neutral-800 text-left">
-                <th className="py-2 pr-4">Particle</th>
-                <th className="py-2 pr-4">Function</th>
-                <th className="py-2">Example</th>
+                <th className="py-2 pr-4">Particule</th>
+                <th className="py-2 pr-4">Fonction</th>
+                <th className="py-2">Exemple</th>
               </tr>
             </thead>
             <tbody>
@@ -279,30 +253,29 @@ function SentenceStructure() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-neutral-500 mt-2">은/는 vs 이/가 distinction is subtle — introduced here, mastered later.</p>
+        <p className="text-xs text-neutral-500 mt-2">La distinction 은/는 vs 이/가 est subtile — introduite ici, maîtrisée plus tard.</p>
       </Section>
 
-      {/* Questions */}
-      <Section title="How to form questions">
+      <Section title="Comment former les questions">
         <div className="text-sm text-neutral-300 space-y-3">
           <div>
-            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">Method 1 — Intonation only (informal)</p>
+            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">Méthode 1 — Intonation montante (informel)</p>
             <div className="flex items-center gap-2">
               <ListenBtn text="밥 먹어?" label="밥 먹어?" />
-              <span className="text-neutral-500 text-xs">raise voice at end</span>
+              <span className="text-neutral-500 text-xs">monter la voix à la fin</span>
             </div>
           </div>
           <div>
-            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">Method 2 — Formal: same word, rising intonation + 요</p>
+            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">Méthode 2 — Formel : même mot, intonation montante + 요</p>
             <div className="space-y-1">
-              <div className="flex items-center gap-2"><ListenBtn text="먹어요." label="먹어요." /><span className="text-neutral-500 text-xs">statement</span></div>
-              <div className="flex items-center gap-2"><ListenBtn text="먹어요?" label="먹어요?" /><span className="text-neutral-500 text-xs">question (rising tone)</span></div>
+              <div className="flex items-center gap-2"><ListenBtn text="먹어요." label="먹어요." /><span className="text-neutral-500 text-xs">affirmation</span></div>
+              <div className="flex items-center gap-2"><ListenBtn text="먹어요?" label="먹어요?" /><span className="text-neutral-500 text-xs">question (ton montant)</span></div>
             </div>
           </div>
           <div>
-            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">Method 3 — Question words</p>
+            <p className="text-neutral-400 text-xs uppercase tracking-wide mb-1">Méthode 3 — Mots interrogatifs</p>
             <div className="grid grid-cols-2 gap-1 text-xs">
-              {[['뭐','what'],['어디','where'],['언제','when'],['누구','who'],['왜','why'],['어떻게','how'],['얼마','how much']].map(([k,e]) => (
+              {[['뭐','quoi'],['어디','où'],['언제','quand'],['누구','qui'],['왜','pourquoi'],['어떻게','comment'],['얼마','combien']].map(([k,e]) => (
                 <div key={k} className="flex items-center gap-2">
                   <ListenBtn text={k} label={k} />
                   <span className="text-neutral-500">{e}</span>
@@ -311,19 +284,18 @@ function SentenceStructure() {
             </div>
             <div className="mt-2 flex items-center gap-2">
               <ListenBtn text="이거 뭐예요?" label="이거 뭐예요?" />
-              <span className="text-neutral-500 text-xs">What is this?</span>
+              <span className="text-neutral-500 text-xs">Qu'est-ce que c'est ?</span>
             </div>
           </div>
         </div>
       </Section>
 
-      {/* Politeness */}
-      <Section title="Politeness levels">
+      <Section title="Niveaux de politesse">
         <div className="text-sm space-y-2">
           {[
-            { level: 'Level 1 — Informal', note: 'friends, children', ex: '먹어.', meaning: 'Eat. / I eat.' },
-            { level: 'Level 2 — Polite informal', note: 'most situations, add 요', ex: '먹어요.', meaning: 'I eat. / Are you eating?' },
-            { level: 'Level 3 — Formal', note: 'official, older strangers', ex: '먹습니다.', meaning: 'I eat. (formal)' },
+            { level: 'Niveau 1 — Informel', note: 'amis, enfants', ex: '먹어.', meaning: 'Mange. / Je mange.' },
+            { level: 'Niveau 2 — Poli informel', note: 'la plupart des situations, ajouter 요', ex: '먹어요.', meaning: 'Je mange. / Tu manges ?' },
+            { level: 'Niveau 3 — Formel', note: 'officiel, personnes âgées inconnues', ex: '먹습니다.', meaning: 'Je mange. (formel)' },
           ].map(({ level, note, ex, meaning }) => (
             <div key={level} className="bg-neutral-800 rounded p-3">
               <p className="text-neutral-300 font-medium text-xs">{level} <span className="text-neutral-500 font-normal">— {note}</span></p>
@@ -333,28 +305,27 @@ function SentenceStructure() {
               </div>
             </div>
           ))}
-          <p className="text-xs text-neutral-500 mt-1">Default to 요 ending. It works in 90% of situations.</p>
+          <p className="text-xs text-neutral-500 mt-1">Utiliser par défaut la terminaison 요. Elle fonctionne dans 90 % des situations.</p>
         </div>
       </Section>
 
-      {/* Japanese comparison */}
-      <Section title="Comparison with Japanese">
+      <Section title="Comparaison avec le japonais">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-green-400 text-xs uppercase tracking-wide mb-2">Similar</p>
+            <p className="text-green-400 text-xs uppercase tracking-wide mb-2">Similaire</p>
             <ul className="text-neutral-300 space-y-1 text-xs">
-              <li>SOV word order</li>
-              <li>Particles system (wa/ga/wo ≈ 은/는, 이/가, 을/를)</li>
-              <li>Politeness levels</li>
-              <li>No gender on nouns</li>
+              <li>Ordre SOV</li>
+              <li>Système de particules (wa/ga/wo ≈ 은/는, 이/가, 을/를)</li>
+              <li>Niveaux de politesse</li>
+              <li>Pas de genre sur les noms</li>
             </ul>
           </div>
           <div>
-            <p className="text-amber-400 text-xs uppercase tracking-wide mb-2">Different</p>
+            <p className="text-amber-400 text-xs uppercase tracking-wide mb-2">Différent</p>
             <ul className="text-neutral-400 space-y-1 text-xs">
-              <li>Different writing systems</li>
-              <li>Different sounds</li>
-              <li>Korean has tense/aspirated contrasts Japanese lacks</li>
+              <li>Systèmes d'écriture différents</li>
+              <li>Sons différents</li>
+              <li>Le coréen a des contrastes tendus/aspirés absents en japonais</li>
             </ul>
           </div>
         </div>
@@ -368,10 +339,10 @@ export default function LanguageRules() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      <h2 className="text-xl font-semibold text-neutral-100 mb-4">Language Rules</h2>
+      <h2 className="text-xl font-semibold text-neutral-100 mb-4">Règles</h2>
 
       <div className="flex gap-1 mb-6 border-b border-neutral-800">
-        {[['writing', 'Writing Rules'], ['structure', 'Sentence Structure']].map(([id, label]) => (
+        {[['writing', 'Règles d\'écriture'], ['structure', 'Structure de phrases']].map(([id, label]) => (
           <button
             key={id}
             onClick={() => setTab(id)}
