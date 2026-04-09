@@ -27,11 +27,11 @@ export default function Auth() {
       <div className="w-full max-w-sm bg-neutral-900 border border-neutral-700 rounded-xl p-8">
         <h1 className="text-2xl font-bold text-white mb-1">Korean Sound & Script Coach</h1>
         <p className="text-neutral-400 mb-8 text-sm">
-          {mode === 'signin' ? 'Sign in to continue.' : 'Create an account.'}
+          {mode === 'signin' ? 'Connexion pour continuer.' : 'Créer un compte.'}
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-neutral-300 mb-1">Email</label>
+            <label className="block text-sm text-neutral-300 mb-1">Courriel</label>
             <input
               type="email"
               value={email}
@@ -41,7 +41,7 @@ export default function Auth() {
             />
           </div>
           <div>
-            <label className="block text-sm text-neutral-300 mb-1">Password</label>
+            <label className="block text-sm text-neutral-300 mb-1">Mot de passe</label>
             <input
               type="password"
               value={password}
@@ -56,20 +56,20 @@ export default function Auth() {
             disabled={loading}
             className="w-full bg-white text-neutral-900 font-semibold py-2.5 rounded text-sm hover:bg-neutral-100 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Loading...' : mode === 'signin' ? 'Sign in' : 'Create account'}
+            {loading ? 'Chargement...' : mode === 'signin' ? 'Connexion' : 'Créer un compte'}
           </button>
         </form>
         <p className="mt-5 text-sm text-neutral-500 text-center">
           {mode === 'signin' ? (
-            <>No account?{' '}
+            <>Pas de compte ?{' '}
               <button onClick={() => setMode('signup')} className="text-neutral-300 underline">
-                Create one.
+                Créer un.
               </button>
             </>
           ) : (
-            <>Have an account?{' '}
+            <>Déjà un compte ?{' '}
               <button onClick={() => setMode('signin')} className="text-neutral-300 underline">
-                Sign in.
+                Connexion.
               </button>
             </>
           )}
