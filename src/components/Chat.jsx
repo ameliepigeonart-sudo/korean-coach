@@ -1,16 +1,46 @@
 import { useState, useEffect, useRef } from 'react'
+import { speakKorean } from '../lib/tts.js'
 
 const OPENING_MESSAGE = {
   role: 'assistant',
-  content: 'Ask me anything about Korean. I can explain rules, practice sounds with you, or answer questions about what you are learning.',
+  content: 'Pose-moi n\'importe quelle question sur le coréen. Je peux expliquer les règles, pratiquer les sons avec toi, ou répondre à tes questions sur ce que tu apprends.',
 }
 
 const QUICK_STARTS = [
-  'Explain what I just learned',
-  'Practice this sound with me',
-  'Why is this hard for me?',
-  'Teach me a short dialogue',
+  'Explique ce que je viens d\'apprendre',
+  'Pratique ce son avec moi',
+  'Pourquoi est-ce difficile pour moi ?',
+  'Apprends-moi un court dialogue',
 ]
+
+function parseMessage(text) {
+  const parts = text.split(/\[\[(.+?)\]\]/)
+  return parts.map((part, i) => {
+    if (i % 2 === 1) {
+      return { type: 'audio', text: part }
+    }
+    return { type: 'text', text: part }
+  })
+}
+
+function AudioToken({ text }) {
+  const [playing, setPlaying] = useState(false)
+
+  async function handlePlay() {
+    setPlaying(true)
+    await speakKorean(text)
+    setTimeout(() => setPlaying(false), 800)
+  }
+
+  return (
+    <button
+      onClick={handlePlay}
+      className={`hangul inline-flex items-center gap-1 bg-neutral-700 hover:bg-neutral-600 text-white text-sm rounded px-2 py-0.5 mx-0.5 transition-colors ${playing ? 'opacity-60' : ''}`}
+    >
+      {text} <span className="text-neutral-400 text-xs">▶</span>
+    </button>
+  )
+}
 
 function TypingIndicator() {
   return (
@@ -19,6 +49,20 @@ function TypingIndicator() {
       <span className="w-2 h-2 bg-neutral-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
       <span className="w-2 h-2 bg-neutral-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
     </div>
+  )
+}
+
+function MessageContent({ content, isUser }) {
+  if (isUser) return <>{content}</>
+  const parts = parseMessage(content)
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.type === 'audio'
+          ? <AudioToken key={i} text={part.text} />
+          : <span key={i}>{part.text}</span>
+      )}
+    </>
   )
 }
 
@@ -33,7 +77,7 @@ function Message({ msg }) {
             : 'bg-neutral-900 border border-neutral-700 text-neutral-100'
         }`}
       >
-        {msg.content}
+        <MessageContent content={msg.content} isUser={isUser} />
       </div>
     </div>
   )
@@ -74,7 +118,7 @@ export default function Chat() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Request failed')
+        throw new Error(data.error || 'Requête échouée')
       }
 
       setHistory(prev => [...prev, { role: 'assistant', content: data.text }])
@@ -98,8 +142,8 @@ export default function Chat() {
   return (
     <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-64px)]">
       <div className="px-4 py-4 border-b border-neutral-800">
-        <h2 className="text-lg font-semibold text-neutral-100">AI Tutor</h2>
-        <p className="text-xs text-neutral-500 mt-0.5">Korean language — direct answers only</p>
+        <h2 className="text-lg font-semibold text-neutral-100">Tuteur IA</h2>
+        <p className="text-xs text-neutral-500 mt-0.5">Coréen — réponses directes uniquement</p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
@@ -138,7 +182,7 @@ export default function Chat() {
           type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder="Ask about Korean..."
+          placeholder="Pose une question sur le coréen..."
           disabled={loading}
           className="flex-1 bg-neutral-800 border border-neutral-700 text-neutral-100 placeholder-neutral-500 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
         />
@@ -147,7 +191,7 @@ export default function Chat() {
           disabled={loading || !input.trim()}
           className="px-4 py-2.5 bg-neutral-100 text-neutral-950 text-sm font-medium rounded-lg hover:bg-neutral-200 transition-colors disabled:opacity-40 shrink-0"
         >
-          Send
+          Envoyer
         </button>
       </form>
     </div>
