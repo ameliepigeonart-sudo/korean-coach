@@ -1,45 +1,38 @@
 import { useState, useRef } from 'react'
+import { speakKorean } from '../lib/tts.js'
 
 const DIALOGUES = [
   {
     id: 1,
-    title: 'Greeting',
+    title: 'Salutation',
     lines: [
-      { speaker: 'A', ko: '안녕하세요!', en: 'Hello' },
-      { speaker: 'B', ko: '안녕하세요!', en: 'Hello' },
-      { speaker: 'A', ko: '잘 지내세요?', en: 'How are you?' },
-      { speaker: 'B', ko: '네, 잘 지내요. 감사합니다.', en: "Yes, I'm well. Thank you." },
+      { speaker: 'A', ko: '안녕하세요!', fr: 'Bonjour !' },
+      { speaker: 'B', ko: '안녕하세요!', fr: 'Bonjour !' },
+      { speaker: 'A', ko: '잘 지내세요?', fr: 'Comment allez-vous ?' },
+      { speaker: 'B', ko: '네, 잘 지내요. 감사합니다.', fr: 'Oui, je vais bien. Merci.' },
     ],
   },
   {
     id: 2,
-    title: 'Ordering',
+    title: 'Commander',
     lines: [
-      { speaker: 'A', ko: '아메리카노 하나 주세요.', en: 'One americano, please.' },
-      { speaker: 'B', ko: '네, 알겠습니다.', en: 'Yes, understood.' },
-      { speaker: 'A', ko: '얼마예요?', en: 'How much?' },
-      { speaker: 'B', ko: '사천오백 원이에요.', en: '4,500 won.' },
+      { speaker: 'A', ko: '아메리카노 하나 주세요.', fr: 'Un américano, s\'il vous plaît.' },
+      { speaker: 'B', ko: '네, 알겠습니다.', fr: 'Oui, bien sûr.' },
+      { speaker: 'A', ko: '얼마예요?', fr: 'C\'est combien ?' },
+      { speaker: 'B', ko: '사천오백 원이에요.', fr: '4 500 wons.' },
     ],
   },
   {
     id: 3,
-    title: 'Asking location',
+    title: 'Demander une direction',
     lines: [
-      { speaker: 'A', ko: '화장실이 어디예요?', en: 'Where is the bathroom?' },
-      { speaker: 'B', ko: '저기요.', en: 'Over there.' },
-      { speaker: 'A', ko: '감사합니다.', en: 'Thank you.' },
-      { speaker: 'B', ko: '아니에요.', en: 'No problem.' },
+      { speaker: 'A', ko: '화장실이 어디예요?', fr: 'Où sont les toilettes ?' },
+      { speaker: 'B', ko: '저기요.', fr: 'Là-bas.' },
+      { speaker: 'A', ko: '감사합니다.', fr: 'Merci.' },
+      { speaker: 'B', ko: '아니에요.', fr: 'De rien.' },
     ],
   },
 ]
-
-function speak(text, rate = 0.9) {
-  window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
-  u.lang = 'ko-KR'
-  u.rate = rate
-  window.speechSynthesis.speak(u)
-}
 
 function DialogueLine({ line, showTranslation }) {
   const [listening, setListening] = useState(false)
@@ -68,25 +61,25 @@ function DialogueLine({ line, showTranslation }) {
         <div className="flex-1 min-w-0">
           <div className="hangul text-neutral-100 text-base">{line.ko}</div>
           {showTranslation && (
-            <div className="text-neutral-500 text-xs mt-0.5">{line.en}</div>
+            <div className="text-neutral-500 text-xs mt-0.5">{line.fr}</div>
           )}
           {heard && (
-            <div className="text-neutral-400 text-xs mt-1">Heard: <span className="hangul text-neutral-200">{heard}</span></div>
+            <div className="text-neutral-400 text-xs mt-1">Entendu : <span className="hangul text-neutral-200">{heard}</span></div>
           )}
         </div>
         <div className="flex gap-1 shrink-0">
           <button
-            onClick={() => speak(line.ko)}
+            onClick={() => speakKorean(line.ko)}
             className="px-2 py-1 text-xs bg-neutral-800 text-neutral-300 rounded hover:bg-neutral-700 transition-colors"
           >
-            Listen
+            Écouter
           </button>
           <button
             onClick={startRepeat}
             disabled={listening}
             className={`px-2 py-1 text-xs rounded transition-colors ${listening ? 'bg-red-900 text-red-200' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}`}
           >
-            {listening ? '...' : 'Repeat'}
+            {listening ? '...' : 'Répéter'}
           </button>
         </div>
       </div>
@@ -97,14 +90,13 @@ function DialogueLine({ line, showTranslation }) {
 function DialogueBlock({ dialogue }) {
   const [showTranslation, setShowTranslation] = useState(true)
   const [practicing, setPracticing] = useState(false)
-  const timerRef = useRef(null)
 
   async function practiceAll() {
     if (practicing) return
     setPracticing(true)
     for (const line of dialogue.lines) {
-      speak(line.ko, 0.8)
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      await speakKorean(line.ko)
+      await new Promise(resolve => setTimeout(resolve, 2500))
     }
     setPracticing(false)
   }
@@ -118,14 +110,14 @@ function DialogueBlock({ dialogue }) {
             onClick={() => setShowTranslation(v => !v)}
             className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
           >
-            {showTranslation ? 'Hide translation' : 'Show translation'}
+            {showTranslation ? 'Masquer la traduction' : 'Afficher la traduction'}
           </button>
           <button
             onClick={practiceAll}
             disabled={practicing}
             className={`px-3 py-1 text-xs rounded transition-colors ${practicing ? 'bg-neutral-700 text-neutral-500' : 'bg-neutral-700 text-neutral-200 hover:bg-neutral-600'}`}
           >
-            {practicing ? 'Playing...' : 'Practice full dialogue'}
+            {practicing ? 'Lecture...' : 'Pratiquer le dialogue'}
           </button>
         </div>
       </div>
