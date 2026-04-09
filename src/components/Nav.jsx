@@ -1,15 +1,15 @@
 import { supabase } from '../lib/supabase.js'
 
 const SCREENS = [
-  { id: 'today', label: 'Today' },
-  { id: 'trainer', label: 'Trainer' },
+  { id: 'today', label: "Aujourd'hui" },
+  { id: 'trainer', label: 'Entraînement' },
   { id: 'hangul', label: 'Hangul' },
   { id: 'dialogues', label: 'Dialogues' },
-  { id: 'rules', label: 'Rules' },
-  { id: 'chat', label: 'Chat' },
+  { id: 'rules', label: 'Règles' },
+  { id: 'chat', label: 'Tuteur' },
   { id: 'capture', label: 'Capture' },
-  { id: 'import', label: 'Import' },
-  { id: 'review', label: 'Review' },
+  { id: 'import', label: 'Audio' },
+  { id: 'review', label: 'Révision' },
 ]
 
 export default function Nav({ screen, setScreen }) {
@@ -39,7 +39,7 @@ export default function Nav({ screen, setScreen }) {
           onClick={handleSignOut}
           className="text-xs text-neutral-500 hover:text-neutral-300 ml-4 shrink-0"
         >
-          Sign out
+          Déconnexion
         </button>
       </div>
     </nav>
